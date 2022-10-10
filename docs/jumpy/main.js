@@ -1,6 +1,11 @@
-title = "";
+title = "Jumpy!";
 
 description = `
+Hold down to power
+  up your jump!
+
+     Release
+to reach the top!
 `;
 
 characters = [
