@@ -20,7 +20,7 @@ const settings = {
 	WIDTH: 150,
 	HEIGHT: 300,
 
-	NUM_PLATFORMS: 3,
+	NUM_PLATFORMS: 8,
 };
 
 options = {
@@ -46,7 +46,7 @@ let platMove = 0;
 let platMoveX = 0;
 
 let isDown = false;
-let isJumping = false;
+let isJumping = true;
 let lastTick = 0;
 
 /**
@@ -62,14 +62,19 @@ let lastTick = 0;
  */
 let platforms;
 
+let maxScore = 0;
+
+
 
 function update() {
 	if (!ticks) {
+		score += 18;
+		let lastY = -50;
 		platforms = times(settings.NUM_PLATFORMS, () => {
-			xPos += 15;
 			const posX = rnd(10, 110);
-            const posY = rnd(25, settings.HEIGHT - 60);
+            const posY = lastY;//rnd(25, settings.HEIGHT - 60);
 			const rand = Math.floor(Math.random() * 15) + 20;
+			lastY += rnd(30, 50);
 			return {
 				Y: posY,
 				X: posX,
@@ -84,18 +89,57 @@ function update() {
 		})
 	}
 
+	//respawn platforms
+	if(platforms.length <= settings.NUM_PLATFORMS) {
+		for(let i = platforms.length; i < settings.NUM_PLATFORMS; i++) {
+			const posX = rnd(10, 110);
+            const posY = 0;
+			const rand = Math.floor(Math.random() * 15) + 20;
+			platforms.push ({
+				Y: posY,
+				X: posX,
+				length: rand
+			});
+		}
+	}
+
+	//remove platforms
+	remove(platforms, (p) => {
+		if(p.Y < -200) {
+			settings.NUM_PLATFORMS --;
+		}
+		return (p.Y > 400 || p.Y < -200)
+	})
+
+	if(platforms.length <= 0) {
+		platMove = 0;
+		platMoveX = 0;
+		score = maxScore;
+		settings.NUM_PLATFORMS = 8;
+		end("You Fell!");
+	}
+
 	
+
+	//Score
+	score += platMove;
+
+
+	//Character stays in place
 	char("a", 75, 270);
 
+	//if char on platform dont move
 	if(isDown) {
+		maxScore = score;
 		platMove = 0;
 		platMoveX = 0;
 		isJumping = false;
 	}
-	else {
+	else { //otherwise makeshift gravity
 		platMove -= 0.01;
 	}
 
+	//if moving left and right makeshift air resist
 	if(platMoveX >= 0) {
 		platMoveX -= 0.001;
 	}
@@ -104,6 +148,7 @@ function update() {
 	}
 
 
+	//update platform movement
 	platforms.forEach((p) => {
 		p.Y += platMove;
 		p.X += platMoveX;
@@ -112,11 +157,11 @@ function update() {
 		color("black");
 		if(isTouchChar && platMove <= 0) {
 			isDown = true;
-		}
-
-		
+		}	
+		console.log(p.Y);
 	});
 	
+	//release and is jumping
 	if(input.isJustReleased && !isJumping) {
 		isJumping = true;
 		platMove += ((lineY - 280) * -1) / 25;
