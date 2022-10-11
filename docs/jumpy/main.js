@@ -89,8 +89,8 @@ function update() {
 
 		platforms.push({
 			Y: settings.HEIGHT - 10,
-			X: 70,
-			length: 10
+			X: 20,
+			length: 100
 		})
 	}
 
